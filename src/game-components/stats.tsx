@@ -1,25 +1,21 @@
 import React from "react";
-import { Entity } from "../model/entity";
-import Observable from "../utils/observable";
-import { Observer } from "../utils/observer";
+import Entity from "../model/entities/entity";
+import { ChangeEvent } from "../utils/observable";
 
 type StatsState = { health: number };
-type StatsProps = { entityObservable:  Observable<Entity> };
+type StatsProps = { entity:  Entity };
 
-export default class Stats extends React.Component<StatsProps, StatsState> implements Observer<Entity>{
+export default class Stats extends React.Component<StatsProps, StatsState> {
+
+    private _entityObserverUnsubscribe;
     
     constructor(props: StatsProps){
         super(props);
         
-        const {health} = this.props.entityObservable.state;
+        const { health } = this.props.entity;
         this.state = { health };
         
-        this.props.entityObservable.subscribe(this);
-    }
-
-    update(entityObservable:  Observable<Entity>) {
-        const {health} = entityObservable.state;
-        this.setState({health});
+        this._entityObserverUnsubscribe = this.props.entity.subscribe( event => this.update( event ) );
     }
 
     get statRepr(){
@@ -29,6 +25,15 @@ export default class Stats extends React.Component<StatsProps, StatsState> imple
                 value: this.state.health,
             }
         }
+    }
+
+    componentWillUnmount(){
+        this._entityObserverUnsubscribe();
+    }
+
+    update(entityObservable:  ChangeEvent<Entity>) {
+        const { health } = entityObservable;
+        if( health ) this.setState( { health } );
     }
 
     render(){

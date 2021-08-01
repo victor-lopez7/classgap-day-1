@@ -1,16 +1,52 @@
 * {
   padding: 0;
   margin: 0;
+
+  --app-padding: 40px;
 }
 
 .App {
-  display: flex;
-  align-items: flex-end;
-  padding: 40px;
+  padding: var(--app-padding);
 }
 
-.App * {
+.Stats {
+  width: 200px;
+  height: 200px;
+  padding: 20px;
+  box-sizing: border-box;
+  border: 1px solid black;
+  position: absolute;
+  right: var(--app-padding);
+  top: var(--app-padding);
+}
+
+.entity-action {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: var(--app-padding);
+}
+
+.entity-action > * {
   margin-right: 40px;
+}
+
+.Entity {
+  display: flex;
+  align-items: center;
+}
+
+.Entity .items {
+  display: flex;
+  align-items: flex-end;
+  align-self: flex-end;
+}
+
+.Entity .items > * { 
+  margin-left: 40px;
+}
+
+.health-display {
+  margin-left: 20px;
 }
 
 .health, .max-health {
@@ -25,21 +61,13 @@
   background-color: red;
 }
 
-.Stats {
-  width: 200px;
-  height: 200px;
-  padding: 20px;
-  box-sizing: border-box;
-  border: 1px solid black;
-  position: absolute;
-  right: 0;
-  top: 20px;
+.emoji {
+  font-size: 30px;
 }
 
 button {
   background-color: transparent;
   border: none;
-  font-size: 30px;
   cursor: pointer;
 }
 

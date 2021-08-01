@@ -1,19 +1,26 @@
-import { Observer } from "./observer";
+export type ChangeEvent<T> = {
+    [ P in keyof T ]?: T[P] extends Function ? never : T[P]
+}
+
+type Callback<T> = ( event: ChangeEvent<T> ) => void
 
 export default abstract class Observable<T> {
-    private observers: Observer<T>[];
+    private observers: Callback<T>[];
 
     constructor(){
         this.observers = [];
     }
 
-    abstract get state(): T;
-
-    notifyAll(){
-        this.observers.forEach(observer => observer.update(this));
+    notifyAll( event: ChangeEvent<T> ){
+        this.observers.forEach(observer => observer( event ));
     }
 
-    subscribe(observer: Observer<T>){
-        this.observers.push(observer);
+    subscribe( callback: ( event: ChangeEvent<T> ) => void ){
+        this.observers.push( callback );
+        return () => this.unsubscribe( callback );
+    }
+
+    unsubscribe( callback: ( event: ChangeEvent<T> ) => void ) {
+        this.observers = this.observers.filter( observer => observer !== callback );
     }
 }

@@ -1,29 +1,36 @@
 import React from "react";
-import { Entity } from "../model/entity";
-import Observable from "../utils/observable";
-import { Observer } from "../utils/observer";
+import Entity from "../model/entities/entity";
+import Item from "../model/items/item";
+import { ChangeEvent } from "../utils/observable";
+import ItemUI from "./item-ui";
 
 type EntityUIState = { health: number, maxHealth: number };
-type EntityUIProps = { entityObservable: Observable<Entity> };
+type EntityUIProps = { entity: Entity, items: Item[] , representation: JSX.Element };
 
-export default class EntityUI extends React.Component<EntityUIProps, EntityUIState> implements Observer<Entity>{
+export default class EntityUI extends React.Component<EntityUIProps, EntityUIState>{
+    
+    private _entityObserverUnsubscribe;
 
     constructor(props: EntityUIProps){
         super(props);
 
-        const { maxHealth, health } = this.props.entityObservable.state;
+        const { maxHealth, health } = this.props.entity;
         this.state = { maxHealth, health };
         
-        this.props.entityObservable.subscribe(this);
+        const updateEntity = ( event: ChangeEvent<Entity> ) => this.update( event )
+        this._entityObserverUnsubscribe = this.props.entity.subscribe( updateEntity );
     }
 
-    setState(newState: EntityUIState){
-        super.setState(newState);
+    renderItems(){
+        return this.props.items.map( (item, i) => <ItemUI item={ item } owner={ this.props.entity } key={ i } /> )
+    }
+
+    componentWillUnmount() {
+        this._entityObserverUnsubscribe();
     }
     
-    update(entityObservable: Observable<Entity>){
-        const { maxHealth, health } = entityObservable.state;
-        this.setState({ maxHealth, health });
+    update(event: ChangeEvent<Entity>){
+        this.setState( event as EntityUIState )
     }
     
     _barWidthStyle(width: number){
@@ -34,13 +41,22 @@ export default class EntityUI extends React.Component<EntityUIProps, EntityUISta
         
         return (
             <div className="Entity">
-                HP: {this.state.health}
-                <div className="max-health"
-                    style={this._barWidthStyle(this.state.maxHealth)}
-                >
-                    <div className="health" 
-                        style={this._barWidthStyle(this.state.health)}
-                    ></div>
+                
+                { this.props.representation }
+                
+                <div className="health-display">
+                    HP: {this.state.health}
+                    <div className="max-health"
+                        style={this._barWidthStyle(this.state.maxHealth)}
+                    >
+                        <div className="health" 
+                            style={this._barWidthStyle(this.state.health)}
+                        ></div>
+                    </div>
+                </div>
+
+                <div className="items">
+                    { this.renderItems() }
                 </div>
             </div>
         )
