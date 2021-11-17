@@ -1,0 +1,26 @@
+{
+	"Player": {
+		"player1": {
+			"name": "Player 1"
+		}
+	},
+	"Hero": {
+		"name": "My Hero",
+		"items": [
+			{
+				"name": "pan",
+				"porcentajeComido": 0.5,
+				"__className": "Hero"
+			},
+			{
+				"name": "armor",
+				"protection": 23,
+				"__className": "Armor"
+			}
+
+		]
+	},
+	"Monster": {
+
+	}
+}
