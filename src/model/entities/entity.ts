@@ -49,7 +49,8 @@ export default abstract class Entity extends Observable<Entity>{
     }
 
     attack(entity: Entity){
-        if(this.health > 0) entity.dealDamage(this._attack);
+        if(this.health > 0) 
+            entity.dealDamage(this._attack);
     }
 
 }

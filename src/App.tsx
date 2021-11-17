@@ -11,6 +11,8 @@ import { ENEMY, ITEM_INFO, MAIN_CHARACTER } from './utils/game-constants';
 // Nota 1: Recordar no aclopar la lógica de negocio a los componentes (UI)
 // Nota 2: No usar estado global -> Observer
 
+// TODO: Facade para guardar el estado y los cambios (CRUD operations)
+
 function App() {
 
   const mainCharacter = new Hero(MAIN_CHARACTER.maxHealth, MAIN_CHARACTER.attack);
