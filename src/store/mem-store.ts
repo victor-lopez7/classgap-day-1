@@ -6,7 +6,7 @@ export default class MemStore implements AbstractStore{
     constructor(private _storage : {[id: string]: Persistent} = {}){}
 
     write(data: Persistent): Promise<void> {
-        this._storage[ data.id ] = Object.assign({} , data);
+        this._storage[ data.__id ] = Object.assign({} , data);
         return Promise.resolve();
     }
 
