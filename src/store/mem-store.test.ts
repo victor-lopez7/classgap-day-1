@@ -1,12 +1,7 @@
+import { TestPersistent } from "../test-utils/TestPersitent";
 import MemStore from "./mem-store";
-import Persistent from "./persistent"
 import { SearchField, Store } from "./store"
 
-class TestPersistent extends Persistent {
-    constructor(public readonly name: string){
-        super();
-    }
-}
 
 // TODO: MemStoreImpl + test
 
@@ -23,14 +18,14 @@ describe( 'Memory Storage Implementation', ()=>{
 
     it('should write persistent object in the storage', ()=>{
         
-        expect( storeData[ t.id ] ).not.toBe( t )           
-        expect( storeData[ t.id ].id ).toEqual( t.id )     
-        expect( storeData[ t.id ].name ).toEqual( testName )     
+        expect( storeData[ t.__id ] ).not.toBe( t )           
+        expect( storeData[ t.__id ].__id ).toEqual( t.__id )     
+        expect( storeData[ t.__id ].name ).toEqual( testName )     
     })   
 
     it('should find a persistent object by id in the storage', async () => {
         
-        const foundPersistent = await Store.findById( t.id );
+        const foundPersistent = await Store.findById( t.__id );
 
         expect( foundPersistent ).not.toBe( t )           
         expect( foundPersistent ).toEqual( t )
@@ -133,9 +128,9 @@ describe( 'Memory Storage Implementation', ()=>{
     
     it('should delete a persistent object from storage', async () => {
         
-        await Store.delete( t.id );
+        await Store.delete( t.__id );
 
-        expect( storeData[ t.id ] ).toBeUndefined();
+        expect( storeData[ t.__id ] ).toBeUndefined();
 
     })
 })
