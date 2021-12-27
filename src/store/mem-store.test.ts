@@ -1,6 +1,6 @@
 import MemStore from "./mem-store";
 import Persistent from "./persistent"
-import { SearchField, SearchOperation, Store } from "./store"
+import { SearchField, Store } from "./store"
 
 class TestPersistent extends Persistent {
     constructor(public readonly name: string){
@@ -114,7 +114,17 @@ describe( 'Memory Storage Implementation', ()=>{
                 const searchFields = [{fieldName: 'name', fieldValue: testName.length, operation: compareLength}];
                 const found = await Store.findByFields(searchFields);
                 expect( found ).toEqual( [ t, t1 ] );
-            })
+            });
+
+            // TODO: Add more tests of this
+            it('should find with multiple SearchField', async() => {
+                const searchFields: SearchField[] = [
+                    {fieldName: 'name', fieldValue: testName.length, operation: compareLength},
+                    {fieldName: 'name', fieldValue: testName, operation: '!='},
+                ];
+                const found = await Store.findByFields(searchFields);
+                expect( found ).toEqual( [ ] );
+            });
         })
 
         

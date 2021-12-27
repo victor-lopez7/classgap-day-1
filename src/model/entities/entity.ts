@@ -1,9 +1,9 @@
-import Observable from "../../utils/observable";
+import { ObservablePersistent } from "../../store/observable-persistent";
 import Item from "../items/item";
 
 const MIN_HEALTH = 0;
 
-export default abstract class Entity extends Observable<Entity>{
+export default abstract class Entity extends ObservablePersistent {
     
     private _health: number;
     private _maxHealth: number;
@@ -40,12 +40,12 @@ export default abstract class Entity extends Observable<Entity>{
 
     dealDamage(damage: number){
         this.health -= damage;
-        this.notifyAll({ health: this.health });
+        this.notifyAll<Entity>({ health: this.health });
     }
 
     heal(lifeHealed: number){
         this.health += lifeHealed;
-        this.notifyAll({health: this.health});
+        this.notifyAll<Entity>({health: this.health});
     }
 
     attack(entity: Entity){

@@ -1,5 +1,21 @@
 import { v4 as uuidv4 } from 'uuid';
 
+<<<<<<< HEAD
+type PlainObject = { __className: string, [prop: string]: any };
+
+export default class Persistent {
+    readonly id: string = uuidv4()
+    static classFactory: { [className: string]: () => Persistent } = {};
+
+	static registerClassFactory( className: string, factory: () => Persistent ) {
+		Persistent.classFactory[ className ] = factory;
+	}
+    
+    // __id: string;
+    __className: string;
+    fromPlainObject: ( plainObject: PlainObject) => Persistent
+    toPlainObject: ( persistent: Persistent ) => PlainObject
+=======
 // TODO: Tests serialize/deserialize
 
 type PlainPersistent = { __className: string, [prop: string]: any };
@@ -85,6 +101,7 @@ export function registerPersistentClass( className: string, factory: ()=>Persist
         Persistent.registerClassFactory( className, factory );
         constructor.prototype.__className = className;
     }
+>>>>>>> 94927a1052188c59ded0da74e0cdadf669140c80
 }
 
 export function persistent() {

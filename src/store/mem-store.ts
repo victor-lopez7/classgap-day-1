@@ -1,5 +1,5 @@
 import Persistent from "./persistent";
-import { AbstractStore, SearchField, SearchOperation, Store, CompareOperation} from "./store";
+import { AbstractStore, SearchField, Store, CompareOperation} from "./store";
 
 export default class MemStore implements AbstractStore{
     
@@ -23,7 +23,7 @@ export default class MemStore implements AbstractStore{
             '!=': ( a, b ) => a !== b,
         }
 
-        const evaluateSearchFields = (storageItem: Persistent) => fields.map(field => {
+        const searchFieldEvaluation = (storageItem: Persistent, field: SearchField) => {
             const { operation, fieldName, fieldValue } = field;
 
             if( typeof operation === 'string' ) {
@@ -31,17 +31,18 @@ export default class MemStore implements AbstractStore{
             } 
 
             return operation( storageItem[ fieldName ], fieldValue );
-        }).reduce((accumulator, currentSearchFieldResult) => accumulator && currentSearchFieldResult);
+        }
 
-        const result = Object.values( this._storage )
-            .filter(evaluateSearchFields);
+        const evaluateSearchFields = (storageItem: Persistent) => fields
+            .map(field => searchFieldEvaluation(storageItem, field))
+            .reduce((accumulator, currentSearchFieldResult) => accumulator && currentSearchFieldResult);
+
+        const result = Object.values( this._storage ).filter(evaluateSearchFields);
 
         return Promise.resolve( result )
     }
 
     delete(id: string): Promise<void> {
-        const persistentToBeDeleted = this._storage[ id ];
-
         if( this._storage[ id ] ) {
             delete this._storage[ id ];
             return Promise.resolve();
