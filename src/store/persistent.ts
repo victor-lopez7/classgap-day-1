@@ -12,10 +12,13 @@ class UnregisteredClassFactoryError extends Error {
   }
 }
 
+type Serializer = ( a: unknown )=>unknown;
+type Deserializer = ( a: unknown )=>unknown;
+
 interface PersistentProperty {
     propName: string
-    onSerialize: ( a: unknown )=>unknown
-    onDeserialize: ( a: unknown )=>unknown
+    onSerialize?: Serializer
+    onDeserialize?: Deserializer
 }
 
 export default class Persistent {
@@ -42,9 +45,9 @@ export default class Persistent {
 
     deserialize( plainObject: PlainPersistent ): Persistent {
         const persistent = Persistent.classFactory[ plainObject.__className ]();
-        const relevantProps = Persistent.registeredPersistentProps[ persistent.__className ];
+        const relevantProps = Persistent.registeredPersistentProps[ plainObject.__className ];
         
-        for( let persistentProperty of relevantProps ){
+        relevantProps.forEach( persistentProperty => {
             const { propName, onDeserialize } = persistentProperty;
             
             if( plainObject[ propName ].__className ){
@@ -52,7 +55,7 @@ export default class Persistent {
             } else {
                 persistent[ propName ] = onDeserialize?.( plainObject[ propName ] ) || plainObject[ propName ];
             }
-        }
+        });
 
         return persistent;
     }
@@ -61,14 +64,15 @@ export default class Persistent {
         const { __className } = persistent
         const plainPersistent = { __className };
         const relevantProps = Persistent.registeredPersistentProps[ __className ];
-        
-        for( let prop in relevantProps ) {
-            if( persistent[ prop ].__className ){
-                plainPersistent[ prop ] = this.serialize( persistent[ prop ] );
+
+        relevantProps.forEach( persistentProperty => {
+            const { propName } = persistentProperty;
+            if( persistent[ propName ].__className ){
+                plainPersistent[ propName ] = this.serialize( persistent[ propName ] );
             } else {
-                plainPersistent[ prop ] = persistent[ prop ];
+                plainPersistent[ propName ] = persistent[ propName ];
             }
-        }
+        });
 
         return plainPersistent;
     }
@@ -83,8 +87,22 @@ export function registerPersistentClass( className: string, factory: ()=>Persist
     }
 }
 
-
-@registerPersistentClass( 'Person', ()=>new Person() )
-class Person extends Persistent {
-    pp: string
+export function persistent() {
+    return function( target: Persistent, propName: string ) {
+        Persistent.registerPersistentProp( target.className, { propName });
+    }
 }
+
+export function serializer( serializer: Serializer )  {
+    return function ( target: Persistent, propName: string ) {
+        
+    }
+}
+
+export function deserializer( deserializer: Deserializer )  {
+    return function ( target: Persistent, propName: string ) {
+        
+    }
+}
+
+// @persistent @serializer() @deserializer() private name: string
