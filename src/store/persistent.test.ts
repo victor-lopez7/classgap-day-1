@@ -1,33 +1,42 @@
-import {TestPersistent, testPersistentClassname, testPersistentConstructor} from "../test-utils/TestPersitent";
+import {ComposedTestPersistent, TestPersistent, testPersistentConstructor} from "../test-utils/TestPersitent";
 import Persistent, { PersistentProperty, UNREGISTERED_CLASS_FACTORY_MESSAGE } from "./persistent";
 
+new TestPersistent()
 describe( 'Persistent', ()=>{
 
     const testPersistentName = 'Josep';
     const persistentProp: PersistentProperty = { propName: 'name' };
-    const registeredPropSet = new Set( [ persistentProp ] );
-    const serializedTestPersistent = { 
-        __className: testPersistentClassname, 
-        name: testPersistentName,
-    }
+    const defaultProps = [{ propName: '__id' }, { propName: '__className' }];
+    const registeredPropSet = new Set( [ ...defaultProps, persistentProp ] );
+
+    let serializedTestPersistent;
     let testPersistent;
+
+    let nestedPersistent;
+    let serializedNestedPersistent;
 
     beforeEach(() => {
         testPersistent = new TestPersistent( testPersistentName );
+        serializedTestPersistent = { 
+            __id: testPersistent.__id,
+            __className: testPersistent.__className, 
+            name: testPersistentName,
+        }
+        
+        nestedPersistent = new ComposedTestPersistent(testPersistent);
+        serializedNestedPersistent = {
+            __className: nestedPersistent.__className,
+            __id: nestedPersistent.__id,
+            test: serializedTestPersistent
+        }
     });
-
-    afterEach(() => {
-        Persistent.clearRegisteredPersistents();
-    })
 
     describe('registerClassFactory', () => {
         it('should register class factory in Persistent', () => {
-            const VOID_SET = new Set<PersistentProperty>();
-
-            Persistent.registerClassFactory( testPersistentClassname, testPersistentConstructor );
-
-            expect(Persistent.classFactory[ testPersistentClassname ]).toEqual( testPersistentConstructor );
-            expect(Persistent.registeredPersistentProps[ testPersistentClassname ]).toEqual( VOID_SET );
+            const SET = new Set<PersistentProperty>( defaultProps.concat(persistentProp) );
+            
+            expect(Persistent.classFactory[ testPersistent.__className ]).toBeDefined();
+            expect(Persistent.registeredPersistentProps[ testPersistent.className ]).toEqual( SET );
         });
     });
 
@@ -38,34 +47,31 @@ describe( 'Persistent', ()=>{
         });
 
         it('should add persistentProperty to registeredPersistentProps', () => {
-            Persistent.registerClassFactory( testPersistentClassname, testPersistentConstructor );
-            Persistent.registerPersistentProp( testPersistentClassname, persistentProp );
-            expect(Persistent.registeredPersistentProps[ testPersistentClassname ] ).toEqual( registeredPropSet );
+            Persistent.registerClassFactory( testPersistent.classname, testPersistentConstructor );
+            Persistent.registerPersistentProp( testPersistent.classname, persistentProp );
+            expect(Persistent.registeredPersistentProps[ testPersistent.classname ] ).toEqual( registeredPropSet );
         });
     });
 
-    describe('clearRegisteredPersistents', () => {
-        it('should clear registered persistents', () => {
-            Persistent.registerClassFactory( testPersistentClassname, testPersistentConstructor );
-            Persistent.registerPersistentProp( testPersistentClassname, persistentProp );
-        });
-    })
-
     describe('serialize', () => {
-        
+
         it('should serialize not nested persistent', () => {
-            Persistent.registerClassFactory( testPersistentClassname, testPersistentConstructor );
-            Persistent.registerPersistentProp( testPersistentClassname, persistentProp );
             expect(Persistent.serialize(testPersistent)).toEqual(serializedTestPersistent);
+        });
+        
+        it('should serialize nested persistent', () => {
+            expect(Persistent.serialize(nestedPersistent)).toEqual(serializedNestedPersistent);
         });
 
     });
 
     describe('deserialize', () => {
         it('should deserialize not nested persistent', () => {
-            Persistent.registerClassFactory( testPersistentClassname, testPersistentConstructor );
-            Persistent.registerPersistentProp( testPersistentClassname, persistentProp );
             expect(Persistent.deserialize(serializedTestPersistent)).toEqual(testPersistent);
+        });
+        
+        it('should deserialize nested persistent', () => {
+            expect(Persistent.deserialize(serializedNestedPersistent)).toEqual(nestedPersistent);
         });
     });
 

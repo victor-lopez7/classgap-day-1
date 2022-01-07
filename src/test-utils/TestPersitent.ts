@@ -1,17 +1,27 @@
-import Persistent from "../store/persistent";
-
-export const testPersistentClassname = 'TestPersistent';
+import Persistent, { persistent, registerPersistentClass } from "../store/persistent";
 
 export const testPersistentConstructor = () => new TestPersistent();
 
+@registerPersistentClass( 'TestPersistent', ()=>new TestPersistent() )
 export class TestPersistent extends Persistent {
-    constructor(public readonly name?: string){
-        super(testPersistentClassname);
+    
+    @persistent
+    public readonly name: string;
+
+    constructor(name?: string){
+        super();
+        this.name = name;
     }
 }
 
-// export class ComposedTestPersistent extends Persistent {
-//     constructor(public readonly test?: TestPersistent, public readonly){
-//         super();
-//     }
-// }
+@registerPersistentClass( 'ComposedTestPersistent', ()=>new ComposedTestPersistent() )
+export class ComposedTestPersistent extends Persistent {
+
+    @persistent
+    public readonly test: TestPersistent
+    
+    constructor(test?: TestPersistent){
+        super();
+        this.test = test;
+    }
+}

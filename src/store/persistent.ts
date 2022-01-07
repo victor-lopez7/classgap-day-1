@@ -1,13 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 
-// TODO: Tests serialize/deserialize
-
 type PlainPersistent = { __className: string, [prop: string]: any };
 
-export const UNREGISTERED_CLASS_FACTORY_MESSAGE = 'Class factory is not registered for this classname'; 
+export const UNREGISTERED_CLASS_FACTORY_MESSAGE = 'Class factory is not registered for className: '; 
 export class UnregisteredClassFactoryError extends Error {
-  constructor() {
-    super( UNREGISTERED_CLASS_FACTORY_MESSAGE );
+  constructor( className: string ) {
+    super( UNREGISTERED_CLASS_FACTORY_MESSAGE + className );
     this.name = 'UnregisteredClassFactoryError';
   }
 }
@@ -23,7 +21,7 @@ export interface PersistentProperty {
 
 export default class Persistent {
     readonly __id: string = uuidv4()
-    private __className: string
+    __className: string
     static classFactory: { [className: string]: () => Persistent } = {};
     static registeredPersistentProps: { [className: string]: Set<PersistentProperty> } = {};
 
@@ -35,19 +33,10 @@ export default class Persistent {
 
     static registerPersistentProp( className: string, persistentProperty: PersistentProperty ){
         if( !Persistent.classFactory[ className ] )
-            throw new UnregisteredClassFactoryError();
+            throw new UnregisteredClassFactoryError( className );
 
         Persistent.registeredPersistentProps[ className ].add( persistentProperty );
     }
-
-    static clearRegisteredPersistents(){
-        Persistent.classFactory = {};
-        Persistent.registeredPersistentProps = {};
-    }
-
-    constructor( className: string ) {
-        this.__className = className;
-    } 
     
     get className() {
         return this.__className;
@@ -94,13 +83,19 @@ export function registerPersistentClass( className: string, factory: ()=>Persist
     return ( constructor: PersistentConstructor ) => {
         Persistent.registerClassFactory( className, factory );
         constructor.prototype.__className = className;
+        constructor.prototype.__persistentProps?.forEach((prop: PersistentProperty) => {
+            Persistent.registerPersistentProp(className, prop);
+        });
+
+        return class extends constructor {
+            __className = className;
+        };
     }
 }
 
-export function persistent() {
-    return function( target: Persistent, propName: string ) {
-        Persistent.registerPersistentProp( target.className, { propName });
-    }
+export function persistent(target: Persistent, propName: string) {
+    target.constructor.prototype.__persistentProps = 
+        (target.constructor.prototype.__persistentProps || []).concat({ propName });
 }
 
 export function serializer( serializer: Serializer )  {
@@ -116,3 +111,26 @@ export function deserializer( deserializer: Deserializer )  {
 }
 
 // @persistent @serializer() @deserializer() private name: string
+
+
+// export function persistent( target: Persistent, property: string ) {
+// 	return persistentParser()( target, property );
+// }
+// 
+// export function persistentParser( options?: Partial<PersistentProperty> ) {
+// 	return function( target: Persistent, property: string ) {
+// 		// from: https://stackoverflow.com/questions/43912168/typescript-decorators-with-inheritance
+// 		// should work like this in order to avoid propagation of persistent properties from one class to others
+// 		if ( !Object.getOwnPropertyDescriptor( target, '_persistentProperties' ) ) {
+// 			if ( target[ '_persistentProperties' ] ) {
+// 				target[ '_persistentProperties' ] = [ ...target[ '_persistentProperties' ] ]
+// 			}
+// 			else target[ '_persistentProperties' ] = []
+// 		}
+
+// 		target[ '_persistentProperties' ].push( {
+// 			name: property,
+// 			...options
+// 		} )
+// 	}
+// }
